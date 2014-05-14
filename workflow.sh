@@ -15,14 +15,14 @@
 ################################
 ## SILVA EUKS rRNA SSU
 ## Download Silva SSU euks db and fix lineages.
-~/build/RDP-training-sets/fixSilvaDb.pl --infile_fasta silva_r117.fasta > silva_r117_fixed.fasta #(euks only). 
+~/build/RDP-training-sets/scripts/fixSilvaDb.pl --infile_fasta silva_r117.fasta > silva_r117_fixed.fasta #(euks only). 
 
 ################################
 ## GREENGENES.
 
 ## Download greengenes 13-5 release from Second Genome site, add taxonomy and "fix" lineages.
-~/build/RDP-training-sets/addTaxToGGFasta.pl --infile_fasta ./gg_13_5.fasta --infile_tax ./gg_13_5_taxonomy > ./gg_13_5_withTaxonomy.fasta
-~/build/RDP-training-sets/fillGGEmptyLineagesSpecie.pl --infile ./gg_13_5_withTaxonomy.fasta --outfile ./gg_13_5_withTaxonomy_corrected.fasta --outfilef ./gg_13_5_withTaxonomy_corrected.fasta.failed
+~/build/RDP-training-sets/scripts/addTaxToGGFasta.pl --infile_fasta ./gg_13_5.fasta --infile_tax ./gg_13_5_taxonomy > ./gg_13_5_withTaxonomy.fasta
+~/build/RDP-training-sets/scripts/fillGGEmptyLineagesSpecie.pl --infile ./gg_13_5_withTaxonomy.fasta --outfile ./gg_13_5_withTaxonomy_corrected.fasta --outfilef ./gg_13_5_withTaxonomy_corrected.fasta.failed
 
 ################################
 ## Concatenate all 3 fasta files with their "fixed" lineages.
@@ -32,7 +32,7 @@ cat ./chloro.fasta ./mito.fasta ./silva_r117_fixed.fasta ./gg_13_5_withTaxonomy_
 # TRAIN SET FOR SPECIE LEVEL. For long reads, Sanger, PacBio.
 
 mkdir -p specie
-~/build/RDP-training-sets/generateRDPHierTree.pl \
+~/build/RDP-training-sets/scripts/generateRDPHierTree.pl \
  --fasta ./gg_13_5_withTaxonomy_corrected_specie_silva_r117_euk_mito_chloro.fasta \
  --tax_level 7 \
  --outfile_model ./specie.txt \
@@ -54,7 +54,7 @@ java -Xmx3g -cp $RDPBIN edu/msu/cme/rdp/classifier/train/ClassifierTraineeMaker 
 # TRAIN SET FOR GENUS LEVEL. (short amplicons should never be classifier lower than the genus level.
 
 mkdir -p genus
-~/build/RDP-training-sets/generateRDPHierTree.pl \
+~/build/RDP-training-sets/scripts/generateRDPHierTree.pl \
  --fasta $DIR/gg_13_5_withTaxonomy_corrected_silva_r117_euk_mito_chloro.fasta \
  --tax_level 6 \
  --outfile_model $DIR/genus.txt \
