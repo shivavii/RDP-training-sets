@@ -4,8 +4,7 @@
 
 ## We modified the lineages of that db and further modified it with the script below
 ## to make it compatible with the lineages from the greengenes database.
-## ~/build/RDP-training-sets/modifyChloroDb.pl --infile chloro_raw.fasta > chloro.fasta
-## chloro.fasta
+## ~/build/RDP-training-sets/modifyChloroDb.pl --infile chloro_raw.fasta > chloroFixed.fasta
 ## chloroFixed.fasta
 
 ## Mitochondria were fetched from http://megasun.bch.umontreal.ca/ogmp/projects/other/mt_list.html
@@ -15,18 +14,18 @@
 ################################
 ## SILVA EUKS rRNA SSU
 ## Download Silva SSU euks db and fix lineages.
-#~/build/RDP-training-sets/fixSilvaDb.pl --infile_fasta silva_r117_euk.fasta > silva_r117_euk_fixed.fasta #(euks only). 
+~/build/RDP-training-sets/fixSilvaDb.pl --infile_fasta silva_r117_euk.fasta > silva_r117_euk_fixed.fasta #(euks only). 
 
 ################################
 ## GREENGENES.
 
 ## Download greengenes 13-5 release from Second Genome site, add taxonomy and "fix" lineages.
-#~/build/RDP-training-sets/scripts/addTaxToGGFasta.pl --infile_fasta ./gg_13_5.fasta --infile_tax ./gg_13_5_taxonomy > ./gg_13_5_withTaxonomy.fasta
-#~/build/RDP-training-sets/scripts/fillGGEmptyLineagesSpecie.pl --infile ./gg_13_5_withTaxonomy.fasta --outfile ./gg_13_5_withTaxonomy_corrected.fasta --outfilef ./gg_13_5_withTaxonomy_corrected.fasta.failed
+~/build/RDP-training-sets/scripts/addTaxToGGFasta.pl --infile_fasta ./gg_13_5.fasta --infile_tax ./gg_13_5_taxonomy > ./gg_13_5_withTaxonomy.fasta
+~/build/RDP-training-sets/scripts/fillGGEmptyLineagesSpecie.pl --infile ./gg_13_5_withTaxonomy.fasta --outfile ./gg_13_5_withTaxonomy_corrected.fasta --outfilef ./gg_13_5_withTaxonomy_corrected.fasta.failed
 
 ################################
 ## Concatenate all 3 fasta files with their "fixed" lineages.
-#cat ./chloroFixed.fasta ./mito.fasta ./silva_r117_euk_fixed.fasta ./gg_13_5_withTaxonomy_corrected.fasta > gg_13_5_withTaxonomy_corrected_silva_r117_euk_mito_chloro.fasta
+cat ./chloroFixed.fasta ./mito.fasta ./silva_r117_euk_fixed.fasta ./gg_13_5_withTaxonomy_corrected.fasta > gg_13_5_withTaxonomy_corrected_silva_r117_euk_mito_chloro.fasta
 
 ################################
 # TRAIN SET FOR SPECIE LEVEL. For long reads, Sanger, PacBio.
@@ -50,7 +49,7 @@ RDPBIN=`which rdp_classifier.jar`
 java -Xmx3g -cp $RDPBIN edu/msu/cme/rdp/classifier/train/ClassifierTraineeMaker \
  ./specie.txt \
  ./specie.fasta 1 version1 test \
- ./specie/ \
+ $DIR/specie/ \
 
 ################################
 # TRAIN SET FOR GENUS LEVEL. (short amplicons should never be classifier lower than the genus level.
