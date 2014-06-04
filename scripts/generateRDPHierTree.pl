@@ -9,13 +9,17 @@ use List::Util qw(sum);
 
 my $usage=<<'ENDHERE';
 NAME:
-~/build/tools/generateRDPHierTree_v2.pl
+generateRDPHierTree.pl
+
 PURPOSE:
 Generates a hierarchy taxonomy and fasta corresponding file to use as RDP training model.
+
 INPUT:
---fasta <fasta_infile> : Fasta header has to formatted like this: >ID<white_space>Taxonomy_level_1;Taxonomy_level_2;Taxonomy_level_n
---tax_level <int> : Can be one of the following values: 1-kingdom, 2-phylum, 3-class, 4-order, 5-family, 6-genus, 7-specie
---greengenes_correction : boolean 0: False and 1: True (Default value = True). If using Greengenes version of May 9th 2011, should be true.
+--fasta <fasta_infile>           : Fasta header has to formatted like this: >ID<white_space>Taxonomy_level_1;Taxonomy_level_2;Taxonomy_level_n
+--tax_level <int>                : Can be one of the following values: 1-kingdom, 2-phylum, 3-class, 4-order, 5-family, 6-genus, 7-specie
+--greengenes_correction          : boolean 0: False and 1: True (Default value = True). If using Greengenes version of May 9th 2011, should be true.
+--fungi_ITS_correction           : boolean 0: False and 1: True (Default value = True). For ITS fungi.
+
 
 OUTPUT:
 --outfile_model <txt_outfile>    : txt file representing the taxonomy.
@@ -39,10 +43,11 @@ Please take extra care to format the header of fasta headers to respect the Gree
 
 AUTHOR/SUPPORT:
 Julien Tremblay - julien.tremblay@mail.mcgill.ca
+
 ENDHERE
 
 ## OPTIONS
-my ($help, $fasta, $tax_level, $outfile_model, $outfile_fasta, $outfile_lineages, $log, $greengenes_correction);
+my ($help, $fasta, $tax_level, $outfile_model, $outfile_fasta, $outfile_lineages, $log, $greengenes_correction, $fungi_ITS_correction);
 my $verbose = 0;
 
 ## SCRIPTS
@@ -53,6 +58,7 @@ GetOptions(
   'log=s'                     => \$log,
   'tax_level=i'               => \$tax_level,
   'greengenes_correction=i'   => \$greengenes_correction,
+  'fungi_ITS_correction=i'    => \$fungi_ITS_correction,
   'outfile_lineages=s'        => \$outfile_lineages,
   'verbose'                   => \$verbose,
   'help'                      => \$help
@@ -66,7 +72,7 @@ die("--outfile_fasta outfile_fasta required\n")              unless $outfile_fas
 die("--tax_level tax_level required\n")                      unless $tax_level;
 die("--outfile_lineages outfile_lineages file required\n")   unless $outfile_lineages;
 die("--tax_level tax level must be a value between 1 and 7") if($tax_level > 7 || $tax_level == 0);
-$greengenes_correction = 1 unless $greengenes_correction;
+$greengenes_correction = 0 unless $greengenes_correction;
 
 ## MAIN
 
@@ -88,6 +94,7 @@ my %seen_family = ();
 my @complete_array = ();
 
 my $j=0;
+my $incertae_count = 0;
 
 my $k__;
 my $p__;
@@ -413,12 +420,55 @@ while( my $seq = $fasta_db->next_seq() ) {
         $taxonomy[5] =  $1."_(".$taxonomy[4].")";
       }
     }
+  }elsif($fungi_ITS_correction == 1){
+    #print STDERR "Doing ITS taxonomy correction\n";
+ 
+    next if($taxonomy[5] =~ m/unidentified/);
+    
+		if($taxonomy[4] eq "f__Venturiaceae"){
+			$taxonomy[3] = "o__Venturiales";
+		}
+		if($taxonomy[5] eq "g__Cryptococcus"){
+			$taxonomy[5] = "g__Cryptococcus(".$taxonomy[4].")";
+		}
+		if($taxonomy[5] eq "g__Perenniporia"){
+			$taxonomy[5] = "g__Perenniporia(".$taxonomy[4].")";
+		}
+		if($taxonomy[4] eq "f__Incertae sedis"){
+			#$taxonomy[2] = $taxonomy[2]."(".$taxonomy[1]."-".$taxonomy[2].")";
+			#$taxonomy[3] = $taxonomy[3]."(".$taxonomy[1]."-".$taxonomy[2].")";
+			#$taxonomy[4] = $taxonomy[4]."(".$taxonomy[1]."-".$taxonomy[2].")";
+      next;
+		}
+		if($taxonomy[4] eq "f__Amorphothecaceae" && $taxonomy[5] eq "g__Amorphotheca"){
+	    $taxonomy[5] = "g__Amorphotheca(".$taxonomy[4].")";  
+    }
+		if($taxonomy[2] eq "c__Lecanoromycetes" && $taxonomy[3] eq "o__Incertae sedis"){
+	    $taxonomy[3] = "o__Incertae sedis(".$taxonomy[2].")";  
+    }
+		if($taxonomy[2] eq "c__Sordariomycetes" && $taxonomy[3] eq "o__Incertae sedis"){
+	    $taxonomy[3] = "o__Incertae sedis(".$taxonomy[2].")";  
+    }
+		if($taxonomy[2] eq "c__Dothideomycetes" && $taxonomy[3] eq "o__Incertae sedis"){
+	    $taxonomy[3] = "o__Incertae sedis(".$taxonomy[2].")";  
+    }
+  
+    # for plants and metazoa
+		if($taxonomy[5] eq "g__Sphenopus"){
+			$taxonomy[5] = "g__Sphenopus(".$taxonomy[4].")";
+		}
   }
+
+  $incertae_count++ if($taxonomy[1] =~ m/Incertae sedis/i);
+  $incertae_count++ if($taxonomy[2] =~ m/Incertae sedis/i);
+  $incertae_count++ if($taxonomy[3] =~ m/Incertae sedis/i);
+  $incertae_count++ if($taxonomy[4] =~ m/Incertae sedis/i);
+  $incertae_count++ if($taxonomy[5] =~ m/Incertae sedis/i);
   
   my $sum = ($k__ + $p__ + $c__ + $o__ + $f__ + $g__ + $s__);  
 
   if($sum >= $tax_level){
-       $complete_array[$j] = $taxonomy[0]."\t".$taxonomy[1]."\t".$taxonomy[2]."\t".$taxonomy[3]."\t".$taxonomy[4]."\t".$taxonomy[5]."\t".$taxonomy[6]."\n" if $tax_level == 7;
+    $complete_array[$j] = $taxonomy[0]."\t".$taxonomy[1]."\t".$taxonomy[2]."\t".$taxonomy[3]."\t".$taxonomy[4]."\t".$taxonomy[5]."\t".$taxonomy[6]."\n" if $tax_level == 7;
     $complete_array[$j] = $taxonomy[0]."\t".$taxonomy[1]."\t".$taxonomy[2]."\t".$taxonomy[3]."\t".$taxonomy[4]."\t".$taxonomy[5]."\n" if $tax_level == 6;
     $complete_array[$j] = $taxonomy[0]."\t".$taxonomy[1]."\t".$taxonomy[2]."\t".$taxonomy[3]."\t".$taxonomy[4]."\n" if $tax_level == 5;
     $complete_array[$j] = $taxonomy[0]."\t".$taxonomy[1]."\t".$taxonomy[2]."\t".$taxonomy[3]."\n" if $tax_level == 4;
@@ -574,6 +624,8 @@ foreach(@array){
   
   }
 }
+
+print STDERR "Incertae sedis: ".$incertae_count."\n" if($verbose);
 
 close(OUT_MODEL);
 exit;
