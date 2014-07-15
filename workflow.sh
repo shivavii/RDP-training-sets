@@ -47,15 +47,15 @@ mkdir -p specie
 module load mugqic/RDP_classifier/2.5; 
 RDPBIN=`which rdp_classifier.jar`
 java -Xmx3g -cp $RDPBIN edu/msu/cme/rdp/classifier/train/ClassifierTraineeMaker \
- ./specie.txt \
- ./specie.fasta 1 version1 test \
- $DIR/specie/ \
+ ./specie/specie.txt \
+ ./specie/specie.fasta 1 version1 test \
+ ./specie/specie \
 
 ################################
 # TRAIN SET FOR GENUS LEVEL. (short amplicons should never be classifier lower than the genus level.
 
 mkdir -p genus
-~/build/RDP-training-sets/generateRDPHierTree.pl \
+~/build/RDP-training-sets/scripts/generateRDPHierTree.pl \
  --fasta $DIR/gg_13_5_withTaxonomy_corrected_silva_r117_euk_mito_chloro.fasta \
  --tax_level 6 \ 
  --outfile_model ./genus/genus.txt \
@@ -71,6 +71,6 @@ RDPBIN=`which rdp_classifier.jar`
 java -Xmx3g -cp $RDPBIN edu/msu/cme/rdp/classifier/train/ClassifierTraineeMaker \
  ./genus/genus.txt \
  ./genus/genus.fasta 1 version1 test \
- $DIR/genus \
+ ./genus/genus \
 
 
