@@ -21,7 +21,7 @@
 
 ## Download greengenes 13-5 release from Second Genome site, add taxonomy and "fix" lineages.
 ~/build/RDP-training-sets/scripts/addTaxToGGFasta.pl --infile_fasta ./gg_13_5.fasta --infile_tax ./gg_13_5_taxonomy > ./gg_13_5_withTaxonomy.fasta
-~/build/RDP-training-sets/scripts/fillGGEmptyLineagesSpecie.pl --infile ./gg_13_5_withTaxonomy.fasta --outfile ./gg_13_5_withTaxonomy_corrected.fasta --outfilef ./gg_13_5_withTaxonomy_corrected.fasta.failed
+~/build/RDP-training-sets/scripts/fillGGEmptyLineages.pl --infile ./gg_13_5_withTaxonomy.fasta --outfile ./gg_13_5_withTaxonomy_corrected.fasta --outfilef ./gg_13_5_withTaxonomy_corrected.fasta.failed
 
 ################################
 ## Concatenate all 3 fasta files with their "fixed" lineages.
