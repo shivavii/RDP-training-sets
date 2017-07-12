@@ -73,7 +73,7 @@ die("--tax_level tax_level required\n")                      unless $tax_level;
 die("--outfile_lineages outfile_lineages file required\n")   unless $outfile_lineages;
 die("--tax_level tax level must be a value between 1 and 7") if($tax_level > 7 || $tax_level == 0);
 $greengenes_correction = 0 unless $greengenes_correction;
-
+$fungi_ITS_correction = 0 unless $fungi_ITS_correction;
 ## MAIN
 
 print STDERR "Generating taxonomy hierarchical file to use in RDP...\n";
